@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/TheScharf/tinyapp/issues"
   },
-  "homepage": "https://github.com/TheScharf/tinyapp#readme"
+  "homepage": "https://github.com/TheScharf/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
 }
