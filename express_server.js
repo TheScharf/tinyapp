@@ -36,6 +36,13 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    username: req.cookies.username
+  };
+  res.render("register", templateVars);
+});
+
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.sendStatus(404);
@@ -93,13 +100,13 @@ app.post("/login", (req, res) =>{
   res.redirect("/urls");
 });
 
-app.post("/logout", (req, res) =>{
+app.post("/logout", (req, res) => {
   const username = req.body.username;
   res.clearCookie('username');
   res.redirect("/urls");
 });
 
-app.post("/register",)
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
