@@ -76,6 +76,14 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.id]
+  };
+  
+  res.render("login", templateVars);
+});
+
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.sendStatus(404);
