@@ -38,6 +38,15 @@ function generateRandomString() {
  return Math.floor((1 + Math.random()) * 0x10000000).toString(36);
 };
 
+function emailChecker(email, users) {
+  for (let address in users) {
+    if (email === users[address].email) {
+      return users[address];
+    }
+  }
+  return false;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -104,10 +113,16 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   const id = generateRandomString();
   const email = req.body.email;
-  console.log(id);
+  if (email === "" || password === "") {
+    res.status(404).send("Please enter login information");
+  }
+  if (emailChecker(email, users)) {
+    res.status(404).send("That email is aready in use on this site!")
+  }
+  //console.log(id);
   res.cookie('id', id);
   users[id] = { id, email, password };
-  console.log("users",users);
+  //console.log("users",users);
   res.redirect("/urls");
   
 })
@@ -129,7 +144,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // });
 app.post("/urls/:id/edit", (req, res) => {
   urlDatabase[req.params.id].longURL = req.body.longURL;
-  console.log(req.params);
+  //console.log(req.params);
   res.redirect("/urls");
 });
 
@@ -141,7 +156,7 @@ app.post("/login", (req, res) =>{
 
 app.post("/logout", (req, res) => {
   const user = users[req.cookies.id];
-  res.clearCookie('user[id]');
+  res.clearCookie("id");
   res.redirect("/urls");
 });
 
