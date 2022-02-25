@@ -28,7 +28,7 @@ const users = {
     password: "poop-soap"
   }
 }
-let user = {};
+//let user = {};
 
 // function lookUpID() {
 // for (user in users) {
@@ -71,8 +71,11 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies.user]
   };
-  //console.log(templateVars);
-  //console.log("cookie", req.cookies);
+  console.log("USER", req.cookies)
+  console.log(users);
+  if (!templateVars.user) {
+    return res.redirect("/login")
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -87,16 +90,26 @@ app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user]
   };
-  
+  let user = users[req.cookies.user];
+  if (user) {
+    res.redirect("urls");
+    return;
+  } else {
   res.render("register", templateVars);
+  }
 });
 
 app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user]
   };
-  
+  let user = users[req.cookies.user];
+  if (user) {
+    res.redirect("urls");
+    return;
+  } else {
   res.render("login", templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -169,6 +182,8 @@ app.post("/login", (req, res) =>{
   }
   const goodEmail = emailChecker(req.body.email, users);
   const goodPw = passwordChecker(req.body.password, users);
+  console.log(goodEmail);
+  console.log(goodPw);
   if (!goodEmail) {
     res.status(403).send('Oops! Email not found');
     return;
@@ -177,8 +192,17 @@ app.post("/login", (req, res) =>{
     res.status(403).send("Oops!");
     return;
   }
-  res.cookie("user", user);
-  return res.redirect("/urls");
+  
+  for( key in users ) {
+    const userInfo = users[key];
+    if ( userInfo.email === req.body.email && userInfo.password === req.body.password ) {
+      res.cookie("user", userInfo.id);
+      res.redirect("/urls");
+      return;
+    }
+  }
+  res.status(403).send("Oops!");
+
 });
 
 app.post("/logout", (req, res) => {
