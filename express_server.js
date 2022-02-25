@@ -11,8 +11,14 @@ app.use(morgan("dev"));
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "a2G5tR"
+  }
 };
 
 
@@ -71,8 +77,8 @@ app.get("/urls", (req, res) => {
     urls: urlDatabase,
     user: users[req.cookies.user]
   };
-  console.log("USER", req.cookies)
-  console.log(users);
+  //console.log("USER", req.cookies)
+  //console.log(users);
   if (!templateVars.user) {
     return res.redirect("/login")
   };
@@ -83,7 +89,13 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
   user: users[req.cookies.user]
   };
+  let user = users[req.cookies.user];
+  if (!user) {
+    res.redirect("urls");
+    return;
+  } else {
   res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/register", (req, res) => {
@@ -116,14 +128,14 @@ app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.sendStatus(404);
   }
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies.user]
   };
   res.render("urls_show", templateVars);
@@ -142,9 +154,10 @@ app.get("/hello", (req, res) => {
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  let userID = req.cookies.user;
+  urlDatabase[shortURL] = { longURL: longURL, userID: userID }
   res.redirect("/urls");
-  //console.log(urlDatabase);
+  console.log("!  ", urlDatabase);
 });
 
 app.post("/register", (req, res) => {
