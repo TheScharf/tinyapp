@@ -2,11 +2,14 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
 
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan("dev"));
 app.set("view engine", "ejs");
@@ -35,13 +38,6 @@ const users = {
     password: "321"
   }
 }
-//let user = {};
-
-// function lookUpID() {
-// for (user in users) {
-//   return user.id;
-// }
-// };
 
 ////////  Functions  /////////
 
@@ -58,14 +54,14 @@ function emailChecker(email, users) {
   return null;
 };
 
-function passwordChecker(password, users) {
-  for (let pw in users) {
-    if (password === users[pw].password) {
-      return users[pw];
-    }
-  }
-  return false;
-};
+// function passwordChecker(password, users) {
+//   for (let pw in users) {
+//     if (password === users[pw].password) {
+//       return users[pw];
+//     }
+//   }
+//   return false;
+// };
 
 function urlsForUser(userID, urlDatabase) {
   let usersURLs = {};
@@ -77,35 +73,17 @@ function urlsForUser(userID, urlDatabase) {
   return usersURLs;
 }
 
-// function privateURL(userID, urlDatabase) {
-//   let userDeets = {};
-//   for (let urls in urlDatabase) {
-//     if (userID === urlDatabase[urls].userID) {
-//       userDeets[urls] = urlDatabase[urls];
-//     }
-//   }
-//   return userDeets;
-// }
-
 //////////  GET  //////////
 
 app.get("/", (req, res) => {
- // const user = users[req.cookies.userID];
-//  const templateVars = {
-//    user: user
-//  };
-// res.render('home', templateVars);
-  res.send("Hello!");
+  res.redirect("/login");
 });
 
 app.get("/urls", (req, res) => {
   const templateVars = { 
-    urls: urlsForUser(req.cookies.user, urlDatabase),
-    user: users[req.cookies.user]
+    urls: urlsForUser(req.session.user, urlDatabase),
+    user: users[req.session.user]
   };
-
-  //console.log("USER", req.cookies)
-  //console.log(users);
   if (!templateVars.user) {
     return res.redirect("/login")
   };
@@ -114,9 +92,9 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-  user: users[req.cookies.user]
+  user: users[req.session.user]
   };
-  let user = users[req.cookies.user];
+  let user = users[req.session.user];
   if (!user) {
     res.redirect("urls");
     return;
@@ -127,9 +105,9 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/register", (req, res) => {
   const templateVars = {
-    user: users[req.cookies.user]
+    user: users[req.session.user]
   };
-  let user = users[req.cookies.user];
+  let user = users[req.session.user];
   if (user) {
     res.redirect("urls");
     return;
@@ -140,9 +118,9 @@ app.get("/register", (req, res) => {
 
 app.get("/login", (req, res) => {
   const templateVars = {
-    user: users[req.cookies.user]
+    user: users[req.session.user]
   };
-  let user = users[req.cookies.user];
+  let user = users[req.session.user];
   if (user) {
     res.redirect("urls");
     return;
@@ -163,7 +141,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.cookies.user]
+    user: users[req.session.user]
   };
   res.render("urls_show", templateVars);
 });
@@ -181,10 +159,9 @@ app.get("/hello", (req, res) => {
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL;
-  let userID = req.cookies.user;
+  let userID = req.session.user;
   urlDatabase[shortURL] = { longURL: longURL, userID: userID }
   res.redirect("/urls");
-  //console.log("!  ", urlDatabase);
 });
 
 app.post("/register", (req, res) => {
@@ -198,16 +175,13 @@ app.post("/register", (req, res) => {
   if (emailChecker(email, users)) {
     res.status(404).send("That email is aready in use on this site!")
   }
-  //console.log(id);
-  res.cookie('user', id);
+  req.session.user = id;
   users[id] = { 
     id, 
     email, 
     password: hashedPassword
-  };
-  //console.log("users",users);
+  }; 
   res.redirect("/urls");
-  
 })
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -217,7 +191,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/urls/:id/edit", (req, res) => {
   urlDatabase[req.params.id].longURL = req.body.longURL;
-  //console.log(req.params);
   res.redirect("/urls");
 });
 
@@ -232,13 +205,13 @@ app.post("/login", (req, res) =>{
   if (!bcrypt.compareSync(password, userPW)) {
     return res.status(403).send('Oops! Password doesn\'t match');
   }
-  res.cookie('user', userObj.id)
+  req.session.user = userObj.id;
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  const user = users[req.cookies.id];
-  res.clearCookie("user");
+  const user = users[req.session.id];
+  req.session = null;
   res.redirect("/urls");
 });
 
