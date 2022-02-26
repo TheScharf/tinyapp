@@ -4,6 +4,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
+const bcrypt = require("bcryptjs");
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -54,7 +55,7 @@ function emailChecker(email, users) {
       return users[address];
     }
   }
-  return false;
+  return null;
 };
 
 function passwordChecker(password, users) {
@@ -188,6 +189,7 @@ app.post("/urls", (req, res) => {
 
 app.post("/register", (req, res) => {
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const id = generateRandomString();
   const email = req.body.email;
   if (email === "" || password === "") {
@@ -198,7 +200,11 @@ app.post("/register", (req, res) => {
   }
   //console.log(id);
   res.cookie('user', id);
-  users[id] = { id, email, password };
+  users[id] = { 
+    id, 
+    email, 
+    password: hashedPassword
+  };
   //console.log("users",users);
   res.redirect("/urls");
   
@@ -216,32 +222,18 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) =>{
-  const templateVars = {
-  user: users[req.cookies.user]
+  const email = req.body.email;
+  const password = req.body.password;
+  const userObj = emailChecker(email, users);
+  if (!userObj) {
+    return res.status(403).send('Oops! Email not found');
   }
-  const goodEmail = emailChecker(req.body.email, users);
-  const goodPw = passwordChecker(req.body.password, users);
-  console.log(goodEmail);
-  console.log(goodPw);
-  if (!goodEmail) {
-    res.status(403).send('Oops! Email not found');
-    return;
+  const userPW = userObj.password;
+  if (!bcrypt.compareSync(password, userPW)) {
+    return res.status(403).send('Oops! Password doesn\'t match');
   }
-  if (!goodPw) {
-    res.status(403).send("Oops!");
-    return;
-  }
-  
-  for( key in users ) {
-    const userInfo = users[key];
-    if ( userInfo.email === req.body.email && userInfo.password === req.body.password ) {
-      res.cookie("user", userInfo.id);
-      res.redirect("/urls");
-      return;
-    }
-  }
-  res.status(403).send("Oops!");
-
+  res.cookie('user', userObj.id)
+  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
