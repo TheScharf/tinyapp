@@ -23,15 +23,15 @@ const urlDatabase = {
 
 
 const users = {
-  "userRandomID1": {
-    id: "userRandomID1",
-    email: "user1@example.com",
-    password: "maple-pizza"
+  "a2G5tR": {
+    id: "a2G5tR",
+    email: "ex@123.com",
+    password: "456"
   },
   "userRandomID2": {
     id: "userRandomID2",
     email: "user2@example.com",
-    password: "poop-soap"
+    password: "321"
   }
 }
 //let user = {};
@@ -66,17 +66,43 @@ function passwordChecker(password, users) {
   return false;
 };
 
+function urlsForUser(userID, urlDatabase) {
+  let usersURLs = {};
+  for (let url in urlDatabase) {
+    if (userID === urlDatabase[url].userID) {
+      usersURLs[url] = urlDatabase[url]
+    }
+  }
+  return usersURLs;
+}
+
+// function privateURL(userID, urlDatabase) {
+//   let userDeets = {};
+//   for (let urls in urlDatabase) {
+//     if (userID === urlDatabase[urls].userID) {
+//       userDeets[urls] = urlDatabase[urls];
+//     }
+//   }
+//   return userDeets;
+// }
+
 //////////  GET  //////////
 
 app.get("/", (req, res) => {
+ // const user = users[req.cookies.userID];
+//  const templateVars = {
+//    user: user
+//  };
+// res.render('home', templateVars);
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
   const templateVars = { 
-    urls: urlDatabase,
+    urls: urlsForUser(req.cookies.user, urlDatabase),
     user: users[req.cookies.user]
   };
+
   //console.log("USER", req.cookies)
   //console.log(users);
   if (!templateVars.user) {
@@ -157,7 +183,7 @@ app.post("/urls", (req, res) => {
   let userID = req.cookies.user;
   urlDatabase[shortURL] = { longURL: longURL, userID: userID }
   res.redirect("/urls");
-  console.log("!  ", urlDatabase);
+  //console.log("!  ", urlDatabase);
 });
 
 app.post("/register", (req, res) => {
