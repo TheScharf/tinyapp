@@ -28,26 +28,26 @@ app.get("/", (req, res) => {
 });
 // urls page
 app.get("/urls", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     urls: urlsForUser(req.session.user, urlDatabase),
     user: users[req.session.user]
   };
   if (!templateVars.user) {
-    return res.redirect("/login")
-  };
+    return res.redirect("/login");
+  }
   res.render("urls_index", templateVars);
 });
 // create a new short url
 app.get("/urls/new", (req, res) => {
-  const templateVars = { 
-  user: users[req.session.user]
+  const templateVars = {
+    user: users[req.session.user]
   };
   let user = users[req.session.user];
   if (!user) {
     res.redirect("urls");
     return;
   } else {
-  res.render("urls_new", templateVars);
+    res.render("urls_new", templateVars);
   }
 });
 // register new user
@@ -60,7 +60,7 @@ app.get("/register", (req, res) => {
     res.redirect("urls");
     return;
   } else {
-  res.render("register", templateVars);
+    res.render("register", templateVars);
   }
 });
 // login existing user
@@ -73,7 +73,7 @@ app.get("/login", (req, res) => {
     res.redirect("urls");
     return;
   } else {
-  res.render("login", templateVars);
+    res.render("login", templateVars);
   }
 });
 // provides access to longURL when shortURL is utilized
@@ -86,7 +86,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 // users short URLs
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.session.user]
@@ -108,7 +108,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL;
   let userID = req.session.user;
-  urlDatabase[shortURL] = { longURL: longURL, userID: userID }
+  urlDatabase[shortURL] = { longURL: longURL, userID: userID };
   res.redirect("/urls");
 });
 // to register a new user
@@ -121,16 +121,16 @@ app.post("/register", (req, res) => {
     res.status(404).send("Please enter login information");
   }
   if (emailChecker(email, users)) {
-    res.status(404).send("That email is aready in use on this site!")
+    res.status(404).send("That email is aready in use on this site!");
   }
   req.session.user = id;
-  users[id] = { 
-    id, 
-    email, 
+  users[id] = {
+    id,
+    email,
     password: hashedPassword
-  }; 
+  };
   res.redirect("/urls");
-})
+});
 // for a user to delete their own short URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
