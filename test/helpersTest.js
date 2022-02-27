@@ -23,6 +23,6 @@ describe('getUserByEmail', function() {
   });
   it('should return undefined if there is no registered user with this email', function() {
     const user = emailChecker("notemail@example.com", testUsers);
-    assert.isNull(user, "User is null");
+    assert.isUndefined(user, "User is undefined");
   });
 });
