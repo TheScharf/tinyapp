@@ -6,6 +6,8 @@ const cookieSession = require("cookie-session");
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
 const { emailChecker } = require("./helpers");
+const { urlsForUser } = require("./helpers");
+const { generateRandomString } = require("./helpers");
 
 app.use(cookieSession({
   name: 'session',
@@ -15,71 +17,16 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan("dev"));
 app.set("view engine", "ejs");
 
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW"
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: "a2G5tR"
-  }
-};
+const urlDatabase = {};
 
-
-const users = {
-  "a2G5tR": {
-    id: "a2G5tR",
-    email: "ex@123.com",
-    password: "456"
-  },
-  "userRandomID2": {
-    id: "userRandomID2",
-    email: "user2@example.com",
-    password: "321"
-  }
-}
-
-////////  Functions  /////////
-
-function generateRandomString() {
- return Math.floor((1 + Math.random()) * 0x10000000).toString(36);
-};
-
-// function emailChecker(email, users) {
-//   for (let address in users) {
-//     if (email === users[address].email) {
-//       return users[address];
-//     }
-//   }
-//   return null;
-// };
-
-// function passwordChecker(password, users) {
-//   for (let pw in users) {
-//     if (password === users[pw].password) {
-//       return users[pw];
-//     }
-//   }
-//   return false;
-// };
-
-function urlsForUser(userID, urlDatabase) {
-  let usersURLs = {};
-  for (let url in urlDatabase) {
-    if (userID === urlDatabase[url].userID) {
-      usersURLs[url] = urlDatabase[url]
-    }
-  }
-  return usersURLs;
-}
+const users = {};
 
 //////////  GET  //////////
 
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
-
+// urls page
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls: urlsForUser(req.session.user, urlDatabase),
@@ -90,7 +37,7 @@ app.get("/urls", (req, res) => {
   };
   res.render("urls_index", templateVars);
 });
-
+// create a new short url
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
   user: users[req.session.user]
@@ -103,7 +50,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
   }
 });
-
+// register new user
 app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.session.user]
@@ -116,7 +63,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
   }
 });
-
+// login existing user
 app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.session.user]
@@ -129,7 +76,7 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
   }
 });
-
+// provides access to longURL when shortURL is utilized
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.sendStatus(404);
@@ -137,7 +84,7 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
-
+// users short URLs
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL,
@@ -156,7 +103,7 @@ app.get("/hello", (req, res) => {
 });
 
 /////////  POST  ////////
-
+// list of users personal URLs
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL;
@@ -164,7 +111,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = { longURL: longURL, userID: userID }
   res.redirect("/urls");
 });
-
+// to register a new user
 app.post("/register", (req, res) => {
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -184,17 +131,17 @@ app.post("/register", (req, res) => {
   }; 
   res.redirect("/urls");
 })
-
+// for a user to delete their own short URL
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
 });
-
+// to edit the short URL and attach a different longURL
 app.post("/urls/:id/edit", (req, res) => {
   urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
-
+// to submit login information for existing users
 app.post("/login", (req, res) =>{
   const email = req.body.email;
   const password = req.body.password;
@@ -209,9 +156,8 @@ app.post("/login", (req, res) =>{
   req.session.user = userObj.id;
   res.redirect("/urls");
 });
-
+// to log out and clear encrypted cookie
 app.post("/logout", (req, res) => {
-  const user = users[req.session.id];
   req.session = null;
   res.redirect("/urls");
 });
