@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
+const { emailChecker } = require("./helpers");
 
 app.use(cookieSession({
   name: 'session',
@@ -45,14 +46,14 @@ function generateRandomString() {
  return Math.floor((1 + Math.random()) * 0x10000000).toString(36);
 };
 
-function emailChecker(email, users) {
-  for (let address in users) {
-    if (email === users[address].email) {
-      return users[address];
-    }
-  }
-  return null;
-};
+// function emailChecker(email, users) {
+//   for (let address in users) {
+//     if (email === users[address].email) {
+//       return users[address];
+//     }
+//   }
+//   return null;
+// };
 
 // function passwordChecker(password, users) {
 //   for (let pw in users) {
