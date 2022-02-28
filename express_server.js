@@ -80,9 +80,10 @@ app.get("/login", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
     res.sendStatus(404);
-  }
+  } else {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
+  }
 });
 // users short URLs
 app.get("/urls/:shortURL", (req, res) => {
@@ -91,7 +92,11 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.session.user]
   };
+  if (!templateVars.user) {
+    return res.redirect("/login");
+  } else {
   res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -133,13 +138,32 @@ app.post("/register", (req, res) => {
 });
 // for a user to delete their own short URL
 app.post("/urls/:shortURL/delete", (req, res) => {
+  const user = req.session.user;
+  const userID = emailChecker(user, users);
+  const templateVars = {
+    urls: urlDatabase,
+    user: userID
+  };
+  if (!user) {
+    return res.status(404).send('You do not have permission to delete this URL!');
+  } else {
   delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  res.redirect("/urls", templateVars);
+  }
 });
 // to edit the short URL and attach a different longURL
 app.post("/urls/:id/edit", (req, res) => {
-  urlDatabase[req.params.id].longURL = req.body.longURL;
-  res.redirect("/urls");
+  //urlDatabase[req.params.id].longURL = req.body.longURL;
+  const user = req.session.user;
+  const userID = emailChecker(user, users);
+  const shortURL = req.params.shortURL;
+  const longURL = req.body.newURL;
+  if (!userID) {
+    return res.redirect("/login");
+  } else {
+    urlDatabase[shortURL].longURL = longURL;
+  res.redirect("/urls/");
+  }
 });
 // to submit login information for existing users
 app.post("/login", (req, res) =>{
