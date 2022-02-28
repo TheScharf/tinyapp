@@ -24,8 +24,12 @@
       <tbody>
         <% for(let url in urls) { %>
           <tr>
-            <td><%= url %></td>
-            <td><%= urls[url].longURL %></td>
+            <td><a href="/u/<%=url %>" class="link"><%= url %></a></td>
+            <td>
+              <a href="<%= urls[url].longURL %>" class="link">
+                <%= urls[url].longURL %>
+              </a>
+            </td>
             <td>
               <a href="/urls/<%=url%>" class="btn btn-outline-primary">
                 Edit
