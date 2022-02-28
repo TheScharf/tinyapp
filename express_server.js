@@ -154,9 +154,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 // to edit the short URL and attach a different longURL
 app.post("/urls/:shortURL/edit", (req, res) => {
   console.log("here we are in edit")
-  //urlDatabase[req.params.id].longURL = req.body.longURL;
   const userID = req.session.user;
-  //const userID = emailChecker(user, users);
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
   if (!userID) {
