@@ -8,9 +8,9 @@ Now you can choose your words carefully, for the right reasons.
 
 ## Final Product
 
-!["screenshot description"](#)
+!["screenshot description"](https://github.com/TheScharf/tinyapp/blob/master/docs/login-page.png?raw=true)
 
-!["screenshot description"](#)
+!["screenshot description"](https://github.com/TheScharf/tinyapp/blob/master/docs/urls-page.png?raw=true)
 
 ## Dependencies
 
